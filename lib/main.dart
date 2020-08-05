@@ -12,6 +12,7 @@ import './screens/splash_screen.dart';
 import './providers/cart_provider.dart';
 import './providers/orders.dart';
 import './providers/auth_provider.dart';
+import './helpers/custom_route.dart';
 
 void main() {
   runApp(MyApp());
@@ -57,11 +58,15 @@ class MyApp extends StatelessWidget {
         builder: (ctx, authProvider, _) => MaterialApp(
           title: 'Flutter Demo',
           theme: ThemeData(
-            primarySwatch: Colors.purple,
-            accentColor: Colors.deepOrange,
-            fontFamily: "Lato",
-            visualDensity: VisualDensity.adaptivePlatformDensity,
-          ),
+              primarySwatch: Colors.purple,
+              accentColor: Colors.deepOrange,
+              fontFamily: "Lato",
+              visualDensity: VisualDensity.adaptivePlatformDensity,
+              //for using our custom page transition across all pages
+              pageTransitionsTheme: PageTransitionsTheme(builders: {
+                TargetPlatform.android: CustomPageTransitionBuilder(),
+                TargetPlatform.iOS: CustomPageTransitionBuilder(),
+              })),
           home: authProvider.isAuth
               ? ProductOverviewScreen()
               : FutureBuilder(
