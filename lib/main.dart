@@ -8,6 +8,7 @@ import './screens/orders_screen.dart';
 import './screens/user_products_screen.dart';
 import './screens/edit_product_screen.dart';
 import './screens/auth_screen.dart';
+import './screens/splash_screen.dart';
 import './providers/cart_provider.dart';
 import './providers/orders.dart';
 import './providers/auth_provider.dart';
@@ -26,9 +27,14 @@ class MyApp extends StatelessWidget {
             return Auth_Provider();
           },
         ),
-        ChangeNotifierProvider(
-          create: (ctx) {
-            return Products_Provider();
+        ChangeNotifierProxyProvider<Auth_Provider, Products_Provider>(
+          update: (ctx, authProvider, previousProductProvider) {
+            return Products_Provider(
+                authProvider.token,
+                previousProductProvider == null
+                    ? []
+                    : previousProductProvider.items,
+                authProvider.userId);
           },
         ),
         ChangeNotifierProvider(
@@ -36,9 +42,14 @@ class MyApp extends StatelessWidget {
             return CartProvider();
           },
         ),
-        ChangeNotifierProvider(
-          create: (ctx) {
-            return Orders_Provider();
+        ChangeNotifierProxyProvider<Auth_Provider, Orders_Provider>(
+          update: (ctx, authProvider, previousOrdersProvider) {
+            return Orders_Provider(
+                authProvider.token,
+                authProvider.userId,
+                previousOrdersProvider == null
+                    ? []
+                    : previousOrdersProvider.orders);
           },
         )
       ],
@@ -51,7 +62,14 @@ class MyApp extends StatelessWidget {
             fontFamily: "Lato",
             visualDensity: VisualDensity.adaptivePlatformDensity,
           ),
-          home: authProvider.isAuth ? ProductOverviewScreen() : AuthScreen(),
+          home: authProvider.isAuth
+              ? ProductOverviewScreen()
+              : FutureBuilder(
+                  future: authProvider.tryAutoLogin(),
+                  builder: (ctx, snapshot) =>
+                      snapshot.connectionState == ConnectionState.waiting
+                          ? SplashScreen()
+                          : AuthScreen()),
           routes: {
             AuthScreen.id: (context) => AuthScreen(),
             ProductOverviewScreen.id: (context) => ProductOverviewScreen(),

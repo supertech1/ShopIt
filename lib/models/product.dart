@@ -15,16 +15,17 @@ class Product with ChangeNotifier {
       @required this.imageUrl,
       this.isFavorite = false});
 
-  void toggleFavorite() async {
+  void toggleFavorite(String authToken, String userId) async {
     final oldStatus = isFavorite;
     isFavorite = !isFavorite;
     notifyListeners();
-    final url = "https://shop-a37c7.firebaseio.com/products/$id.json";
+    final url =
+        "https://shop-a37c7.firebaseio.com/userFavorites/$userId/$id.json?auth=$authToken";
     try {
-      final response = await http.patch(url,
-          body: jsonEncode({
-            'isFavorite': isFavorite,
-          }));
+      final response = await http.put(url,
+          body: jsonEncode(
+            isFavorite,
+          ));
       if (response.statusCode >= 400) {
         isFavorite = oldStatus;
         notifyListeners();

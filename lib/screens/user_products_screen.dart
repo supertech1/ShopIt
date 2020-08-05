@@ -9,12 +9,13 @@ class UserProductsScreen extends StatelessWidget {
   static final id = "/user_product_screen";
 
   Future<void> _refreshProducts(BuildContext context) async {
-    await Provider.of<Products_Provider>(context, listen: false).fetchProduct();
+    await Provider.of<Products_Provider>(context, listen: false)
+        .fetchProduct(true);
   }
 
   @override
   Widget build(BuildContext context) {
-    final productData = Provider.of<Products_Provider>(context);
+    // final productData = Provider.of<Products_Provider>(context);
     return Scaffold(
       appBar: AppBar(
         title: Text("Your Products"),
@@ -28,19 +29,29 @@ class UserProductsScreen extends StatelessWidget {
         ],
       ),
       drawer: AppDrawer(),
-      body: RefreshIndicator(
-        onRefresh: () => _refreshProducts(context),
-        child: Padding(
-          padding: EdgeInsets.all(8),
-          child: ListView.builder(
-              itemCount: productData.items.length,
-              itemBuilder: (ctx, index) {
-                return UserProductItem(
-                    id: productData.items[index].id,
-                    title: productData.items[index].title,
-                    imageUrl: productData.items[index].imageUrl);
-              }),
-        ),
+      body: FutureBuilder(
+        future: _refreshProducts(context),
+        builder: (ctx, snapshot) =>
+            snapshot.connectionState == ConnectionState.waiting
+                ? Center(
+                    child: CircularProgressIndicator(),
+                  )
+                : RefreshIndicator(
+                    onRefresh: () => _refreshProducts(context),
+                    child: Consumer<Products_Provider>(
+                      builder: (ctx, productData, child) => Padding(
+                        padding: EdgeInsets.all(8),
+                        child: ListView.builder(
+                            itemCount: productData.items.length,
+                            itemBuilder: (ctx, index) {
+                              return UserProductItem(
+                                  id: productData.items[index].id,
+                                  title: productData.items[index].title,
+                                  imageUrl: productData.items[index].imageUrl);
+                            }),
+                      ),
+                    ),
+                  ),
       ),
     );
   }
